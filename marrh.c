@@ -16,7 +16,7 @@ int argc;
 char **argv;
 {
     int     i,j,p,q,s,t,mr,centx,centy;
-    double  maskval,sum,sig,maxival,minival,maxval,ZEROTOL,percentage;
+    double  maskval,sum,sig,maxival,minival,maxval,percentage;
     FILE    *fo1, *fo2,*fp1, *fopen();
     char    *foobar;
 
@@ -47,8 +47,8 @@ char **argv;
     argc--;
     argv++;
     foobar = *argv;
-    //percentage = atof(foobar);
-    ZEROTOL = atof(foobar);
+    percentage = atof(foobar);
+    //ZEROTOL = atof(foobar);
 
     mr = (int)(sig * 3);
     centx = (MAXMASK / 2);
