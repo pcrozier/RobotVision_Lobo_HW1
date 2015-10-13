@@ -1,4 +1,5 @@
 #include <stdio.h>                  /*  Marr-Hildreth.c  (or marrh.c) */
+#include <string.h>
 #include <math.h>
 #define  PICSIZE 256
 #define  MAXMASK 100
@@ -15,50 +16,60 @@ int argc;
 char **argv;
 {
         int     i,j,p,q,s,t,mr,centx,centy;
-        double  maskval,sum,sig,maxival,minival,maxval,ZEROTOL;
+        double  maskval,sum,sig,maxival,minival,maxval,ZEROTOL,percentage;
         FILE    *fo1, *fo2,*fp1, *fopen();
         char    *foobar;
 
+        // Get input fname
         argc--; argv++;
         foobar = *argv;
         fp1=fopen(foobar,"rb");
 
+        // Get output fname
         argc--; argv++;
         foobar = *argv;
         fo1=fopen(foobar,"wb");
 
-        argc--; argv++;
-        foobar = *argv;
-        fo2=fopen(foobar,"wb");
+        //argc--; argv++;
+        //foobar = *argv;
+        //fo2=fopen(foobar,"wb");
 
+        // Get sigma
         argc--; argv++;
         foobar = *argv;
         sig = atof(foobar);
-
+        //sig = (double)atoi(foobar);
+        printf("\n%s %.2lf\n",foobar,sig);
+        // Get percentage
         argc--; argv++;
         foobar = *argv;
+        //percentage = atof(foobar);
         ZEROTOL = atof(foobar);
 
         mr = (int)(sig * 3);
         centx = (MAXMASK / 2);
         centy = (MAXMASK / 2);
-
+        printf("1 ");
         for (i=0;i<256;i++)
         { for (j=0;j<256;j++)
                 {
                   pic[i][j]  =  getc (fp1);
                 }
         }
-
+        printf("1-2 ");
         for (p=-mr;p<=mr;p++)
         {  for (q=-mr;q<=mr;q++)
            {
+               printf("1-3 ");
               maskval = ((2-(((p*p)+(q*q))/(sig*sig)))*
                       (exp(-1*(((p*p)+(q*q))/(2*(sig*sig))))));
+                      printf("1-4 ");
+                      printf("\n %.2lf %d %d %d %d %d %d\n ",sig,mr,p,q,centx,centy,maskval);
               (mask[p+centy][q+centx]) = maskval;
+              printf("1-5 ");
            }
         }
-
+        printf("2 ");
         for (i=mr;i<=255-mr;i++)
         { for (j=mr;j<=255-mr;j++)
           {
@@ -74,7 +85,7 @@ char **argv;
              conv[i][j] = sum;
           }
         }
-
+        printf("3 ");
         maxval  = 0;
         maxival = 0;
         minival = 255;
@@ -92,7 +103,7 @@ char **argv;
            maxval = fabs(maxival);
         else
            maxval = fabs(minival);
-
+        printf("4 ");
         for (i=0;i<256;i++)
         { for (j=0;j<256;j++)
           {
@@ -100,7 +111,7 @@ char **argv;
              fprintf(fo1,"%c",(char)((int)(outpic1[i][j])));
           }
         }
-
+        printf("5 ");
         for (i=mr;i<=255-mr;i++)
         {  for (j=mr;j<=255-mr;j++)
            {
