@@ -10,12 +10,14 @@ int maskx[3][3] = {{-1,0,1},{-2,0,2},{-1,0,1}};
 int masky[3][3] = {{1,2,1},{0,0,0},{-1,-2,-1}};
 double ival[256][256],maxival;
 
+//Suggested shell command: .\sobel.exe garb34 out 40 110
+
 main(argc,argv)
 int argc;
 char **argv;
 {
     int i,j,p,q,mr,sum1,sum2;
-    double threshold;
+    double threshold_lo, threshold_hi;
     FILE *fo1, *fo2, *fp1, *fopen();
     char *foobar;
     char inputfname[300];
@@ -34,11 +36,17 @@ char **argv;
     foobar = *argv;
     strcpy(outputfname, foobar);
 
-    // Get threshold
+    // Get LO threshold
     argc--;
     argv++;
     foobar = *argv;
-    threshold = atof(foobar);
+    threshold_lo = atof(foobar);
+
+    // Get HI threshold
+    argc--;
+    argv++;
+    foobar = *argv;
+    threshold_hi = atof(foobar);
 
     // Read in input image
     for (i=0; i<256; i++)
@@ -121,6 +129,36 @@ char **argv;
         {
             fprintf(fo1,"%c",(char)((int)(outpicx[i][j])));
             fprintf(fo2,"%c",(char)((int)(outpicy[i][j])));
+        }
+    }
+
+    fclose(fo1);
+    fclose(fo2);
+
+    // Output thresholded images
+    strcpy(foobar, outputfname);
+    fo1=fopen(strcat(foobar,"lo.pgm"),"wb");
+    strcpy(foobar, outputfname);
+    fo2=fopen(strcat(foobar,"hi.pgm"),"wb");
+
+    fprintf(fo1,"P5\n256 256\n255\n"); // Output PGM Header
+    fprintf(fo2,"P5\n256 256\n255\n"); // Output PGM Header
+
+    for (i=0; i<256; i++)
+    {
+        for (j=0; j<256; j++)
+        {
+            // Threshold LO image pixel
+            if (ival[i][j] < threshold_lo)
+                fprintf(fo1,"%c",(char)((int)0));
+            else
+                fprintf(fo1,"%c",(char)((int)255));
+
+            // Threshold HI image pixel
+            if (ival[i][j] < threshold_hi)
+                fprintf(fo2,"%c",(char)((int)0));
+            else
+                fprintf(fo2,"%c",(char)((int)255));
         }
     }
 
