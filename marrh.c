@@ -8,15 +8,17 @@ int    pic[PICSIZE][PICSIZE];
 double outpic1[PICSIZE][PICSIZE];
 double outpic2[PICSIZE][PICSIZE];
 int    edgeflag[PICSIZE][PICSIZE];
-double mask[MAXMASK][MAXMASK];
-double conv[PICSIZE][PICSIZE];
+double xmask[MAXMASK][MAXMASK];
+double ymask[MAXMASK][MAXMASK];
+double xconv[PICSIZE][PICSIZE];
+double yconv[PICSIZE][PICSIZE];
 
 main(argc,argv)
 int argc;
 char **argv;
 {
-    int     i,j,p,q,s,t,mr,centx,centy;
-    double  maskval,sum,sig,maxival,minival,maxval,percentage;
+    int     i,j,y,x,s,t,mr,centx,centy;
+    double  maskval,xsum,ysum,sig,maxival,minival,maxval,percentage;
     FILE    *fo1, *fo2,*fp1, *fopen();
     char    *foobar;
 
@@ -64,14 +66,19 @@ char **argv;
     }
 
     // Build a mask
-    for (p=-mr; p<=mr; p++)
+    for (y=-mr; y<=mr; y++)
     {
-        for (q=-mr; q<=mr; q++)
+        for (x=-mr; x<=mr; x++)
         {
-            maskval = ((2-(((p*p)+(q*q))/(sig*sig)))*
-                       (exp(-1*(((p*p)+(q*q))/(2*(sig*sig))))));
+            // compute xmask value
+            maskval = (x)*(exp(-1*(((y*y)+(x*x))/(2*(sig*sig)))));
+            (xmask[y+centy][x+centx]) = maskval;
+
+            // compute ymask value
+            maskval = (y)*(exp(-1*(((y*y)+(x*x))/(2*(sig*sig)))));
+            (xmask[y+centy][x+centx]) = maskval;
+
             //printf("\n %.2lf %d %d %d %d %d %d\n ",sig,mr,p,q,centx,centy,maskval);
-            (mask[p+centy][q+centx]) = maskval;
         }
     }
 
@@ -80,16 +87,19 @@ char **argv;
     {
         for (j=mr; j<=255-mr; j++)
         {
-            sum = 0;
-            for (p=-mr; p<=mr; p++)
+            xsum = 0, ysum = 0;
+            for (y=-mr; y<=mr; y++)
             {
-                for (q=-mr; q<=mr; q++)
+                for (x=-mr; x<=mr; x++)
                 {
-                    sum += pic[i+p][j+q] * mask[p+centy][q+centx];
+                    xsum += pic[i+y][j+x] * xmask[y+centy][x+centx];
+                    ysum += pic[i+y][j+x] * ymask[y+centy][x+centx];
                 }
             }
-            outpic1[i][j] = sum;
-            conv[i][j] = sum;
+            outpic1[i][j] = xsum;
+            xconv[i][j] = xsum;
+            outpic2[i][j] = ysum; // I don't think outpic is what is intended head. Need to take a closer look.
+            yconv[i][j] = ysum;
         }
     }
 }
