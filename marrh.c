@@ -40,8 +40,8 @@ char **argv;
     argc--;
     argv++;
     foobar = *argv;
-    sig = atof(foobar);
-    //sig = (double)atoi(foobar);
+    //sig = strtod(foobar, NULL);//atof(foobar);
+    sig = (double)atoi(foobar);
     printf("\n%s %.2lf\n",foobar,sig);
     // Get percentage
     argc--;
@@ -53,7 +53,8 @@ char **argv;
     mr = (int)(sig * 3);
     centx = (MAXMASK / 2);
     centy = (MAXMASK / 2);
-    printf("1 ");
+
+    // Read in input image
     for (i=0; i<256; i++)
     {
         for (j=0; j<256; j++)
@@ -61,21 +62,20 @@ char **argv;
             pic[i][j]  =  getc (fp1);
         }
     }
-    printf("1-2 ");
+
+    // Build a mask
     for (p=-mr; p<=mr; p++)
     {
         for (q=-mr; q<=mr; q++)
         {
-            printf("1-3 ");
             maskval = ((2-(((p*p)+(q*q))/(sig*sig)))*
                        (exp(-1*(((p*p)+(q*q))/(2*(sig*sig))))));
-            printf("1-4 ");
-            printf("\n %.2lf %d %d %d %d %d %d\n ",sig,mr,p,q,centx,centy,maskval);
+            //printf("\n %.2lf %d %d %d %d %d %d\n ",sig,mr,p,q,centx,centy,maskval);
             (mask[p+centy][q+centx]) = maskval;
-            printf("1-5 ");
         }
     }
-    printf("2 ");
+
+    // Convolution
     for (i=mr; i<=255-mr; i++)
     {
         for (j=mr; j<=255-mr; j++)
@@ -90,96 +90,6 @@ char **argv;
             }
             outpic1[i][j] = sum;
             conv[i][j] = sum;
-        }
-    }
-    printf("3 ");
-    maxval  = 0;
-    maxival = 0;
-    minival = 255;
-
-    for (i=mr; i<256-mr; i++)
-    {
-        for (j=mr; j<256-mr; j++)
-        {
-            if (outpic1[i][j] > maxival)
-                maxival = outpic1[i][j];
-            if (outpic1[i][j] < minival)
-                minival = outpic1[i][j];
-        }
-    }
-    if (fabs(maxival) > fabs(minival))
-        maxval = fabs(maxival);
-    else
-        maxval = fabs(minival);
-    printf("4 ");
-    for (i=0; i<256; i++)
-    {
-        for (j=0; j<256; j++)
-        {
-            outpic1[i][j] = ((((outpic1[i][j]) / maxval) + 1) * 127);
-            fprintf(fo1,"%c",(char)((int)(outpic1[i][j])));
-        }
-    }
-    printf("5 ");
-    for (i=mr; i<=255-mr; i++)
-    {
-        for (j=mr; j<=255-mr; j++)
-        {
-            outpic2[i][j] = 0;
-            if (conv[i][j] > ZEROTOL)
-            {
-                for (p=-1; p<=1; p++)
-                {
-                    for (q=-1; q<=1; q++)
-                    {
-                        if (conv[i+p][j+q] < -ZEROTOL)
-                        {
-                            outpic2[i][j] = 255;
-                        }
-                    }
-                }
-            }
-            else if ((fabs)(conv[i][j]) < ZEROTOL)
-            {
-                if (((conv[i+1][j] > ZEROTOL) &&
-                        (conv[i-1][j] < -ZEROTOL))   ||
-                        ((conv[i+1][j] < -ZEROTOL) &&
-                         (conv[i-1][j] > ZEROTOL)))
-                {
-                    outpic2[i][j] = 255;
-                }
-                else if (((conv[i][j+1] > ZEROTOL) &&
-                          (conv[i][j-1] < -ZEROTOL))   ||
-                         ((conv[i][j+1] < -ZEROTOL) &&
-                          (conv[i][j-1] > ZEROTOL)))
-                {
-                    outpic2[i][j] = 255;
-                }
-                else if (((conv[i+1][j+1] > ZEROTOL) &&
-                          (conv[i-1][j-1] < -ZEROTOL))   ||
-                         ((conv[i+1][j+1] < -ZEROTOL) &&
-                          (conv[i-1][j-1] > ZEROTOL)))
-                {
-                    outpic2[i][j] = 255;
-                }
-                else if (((conv[i+1][j-1] > ZEROTOL) &&
-                          (conv[i-1][j+1] < -ZEROTOL))   ||
-                         ((conv[i+1][j-1] < -ZEROTOL) &&
-                          (conv[i-1][j+1] > ZEROTOL)))
-                {
-                    outpic2[i][j] = 255;
-                }
-            }
-        }
-    }
-
-    for (i=0; i<256; i++)
-    {
-        for (j=0; j<256; j++)
-        {
-            if (outpic2[i][j] == 255) outpic2[i][j]=0;
-            else outpic2[i][j]=255;
-            fprintf(fo2,"%c",(char)((int)(outpic2[i][j])));
         }
     }
 }
