@@ -76,7 +76,7 @@ char **argv;
 
             // compute ymask value
             maskval = (y)*(exp(-1*(((y*y)+(x*x))/(2*(sig*sig)))));
-            (xmask[y+centy][x+centx]) = maskval;
+            (ymask[y+centy][x+centx]) = maskval;
 
             //printf("\n %.2lf %d %d %d %d %d %d\n ",sig,mr,p,q,centx,centy,maskval);
         }
