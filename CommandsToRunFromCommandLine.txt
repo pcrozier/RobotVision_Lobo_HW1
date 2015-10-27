@@ -1,5 +1,5 @@
 Sobel:
-
+.\sobel.exe garb34 out 40 110
 
 Canny:
- ./marrh.exe garb34 out 1 5
+./marrh.exe garb34 out 1 5
