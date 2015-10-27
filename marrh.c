@@ -3,12 +3,15 @@
 #include <math.h>
 #define  PICSIZE 256
 #define  MAXMASK 100
+#define ON 255
+#define OFF 0
 
 int    pic[PICSIZE][PICSIZE];
 double outpicx[PICSIZE][PICSIZE];
 double outpicy[PICSIZE][PICSIZE];
 double mag[PICSIZE][PICSIZE];
 int cand[PICSIZE][PICSIZE];
+int fin[PICSIZE][PICSIZE];
 int    edgeflag[PICSIZE][PICSIZE];
 double xmask[MAXMASK][MAXMASK];
 double ymask[MAXMASK][MAXMASK];
@@ -19,9 +22,9 @@ main(argc,argv)
 int argc;
 char **argv;
 {
-    int     i,j,y,x,s,t,mr,centx,centy;
+    int     i,j,y,x,s,t,mr,centx,centy, moretodo, HI, LO, p,q;
     double  maskval,xsum,ysum,sig,maxival,minival,maxval,percentage,slope;
-    FILE    *fo1, *fo2,*fp1, *fopen();
+    FILE    *fo1, *fo2,*fo3,*fp1, *fopen();
     char    *foobar;
     char outputfname[300];
 
@@ -183,16 +186,79 @@ char **argv;
     strcpy(foobar, outputfname);
     fo2=fopen(strcat(foobar,"_peaks.pgm"),"wb");
 
+    fprintf(fo2,"P5\n256 256\n255\n"); // Output PGM Header
+
+    for (i=0; i<256; i++)
+    {
+        for (j=0; j<256; j++)
+        {
+            fprintf(fo2,"%c",(char)((int)(cand[i][j])));
+        }
+    }
+
+    fclose(fo2);
+
+    // Double threshold
+    HI = 200;
+    LO = 50;
+
+    for (i=0; i<256; i++)
+    {
+        for (j=0; j<256; j++)
+        {
+            if (cand[i][j] == ON)
+            {
+                if (mag[i][j] > HI){
+                    cand[i][j] = OFF;
+                    fin[i][j] = ON;
+                } else if (mag[i][j] < LO){
+                    cand[i][j] = fin[i][j] = OFF;
+                }
+            }
+        }
+    }
+
+    moretodo = ON;
+    while (moretodo == ON)
+    {
+        moretodo = OFF;
+        for (i=0; i<256; i++)
+        {
+            for (j=0; j<256; j++)
+            {
+                if (cand[i][j] == ON)
+                {
+                    for (p=-1; p<=1; p++)
+                    {
+                        for (q=-1; q<=1; q++)
+                        {
+                            if (fin[i+p][j+q] == ON)
+                            {
+                                cand[i][j] = OFF;
+                                fin[i][j] = ON;
+                                moretodo = ON;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Output final image
+    strcpy(foobar, outputfname);
+    fo3=fopen(strcat(foobar,"_final.pgm"),"wb");
+
     fprintf(fo1,"P5\n256 256\n255\n"); // Output PGM Header
 
     for (i=0; i<256; i++)
     {
         for (j=0; j<256; j++)
         {
-            fprintf(fo1,"%c",(char)((int)(cand[i][j])));
+            fprintf(fo3,"%c",(char)((int)(fin[i][j])));
         }
     }
 
-    fclose(fo1);
+    fclose(fo3);
 }
 
