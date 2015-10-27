@@ -5,8 +5,9 @@
 #define  MAXMASK 100
 
 int    pic[PICSIZE][PICSIZE];
-double outpic1[PICSIZE][PICSIZE];
-double outpic2[PICSIZE][PICSIZE];
+double outpicx[PICSIZE][PICSIZE];
+double outpicy[PICSIZE][PICSIZE];
+double mag[PICSIZE][PICSIZE];
 int    edgeflag[PICSIZE][PICSIZE];
 double xmask[MAXMASK][MAXMASK];
 double ymask[MAXMASK][MAXMASK];
@@ -96,11 +97,42 @@ char **argv;
                     ysum += pic[i+y][j+x] * ymask[y+centy][x+centx];
                 }
             }
-            outpic1[i][j] = xsum;
+            outpicx[i][j] = xsum;
             xconv[i][j] = xsum;
-            outpic2[i][j] = ysum; // I don't think outpic is what is intended head. Need to take a closer look.
+            outpicy[i][j] = ysum; // I don't think outpic is what is intended head. Need to take a closer look.
             yconv[i][j] = ysum;
         }
     }
+
+    /* Applying the Magnitude formula in the code*/
+    maxival = 0;
+    for (i=mr; i<256-mr; i++)
+    {
+        for (j=mr; j<256-mr; j++)
+        {
+            mag[i][j]=sqrt((double)((outpicx[i][j]*outpicx[i][j]) +
+                                     (outpicy[i][j]*outpicy[i][j])));
+            if (mag[i][j] > maxival)
+                maxival = mag[i][j];
+
+        }
+    }
+
+    // Output magnitude image
+    //strcpy(foobar, outputfname);
+    //fo1=fopen(foobar,"wb");//strcat(foobar,"mag.pgm"),"wb");
+
+    fprintf(fo1,"P5\n256 256\n255\n"); // Output PGM Header
+
+    for (i=0; i<256; i++)
+    {
+        for (j=0; j<256; j++)
+        {
+            mag[i][j] = (mag[i][j] / maxival) * 255;
+            fprintf(fo1,"%c",(char)((int)(mag[i][j])));
+        }
+    }
+
+    fclose(fo1);
 }
 
