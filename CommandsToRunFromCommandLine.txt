@@ -1,0 +1,5 @@
+Sobel:
+
+
+Canny:
+ ./marrh.exe garb34 out 1 5

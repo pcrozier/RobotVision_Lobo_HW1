@@ -22,8 +22,9 @@ main(argc,argv)
 int argc;
 char **argv;
 {
-    int     i,j,y,x,s,t,mr,centx,centy, moretodo, HI, LO, p,q;
+    int     i,j,y,x,s,t,mr,centx,centy, moretodo, HI, LO, p,q, areaOfTops,cutOff;
     double  maskval,xsum,ysum,sig,maxival,minival,maxval,percentage,slope;
+    int histogram[256];
     FILE    *fo1, *fo2,*fo3,*fp1, *fopen();
     char    *foobar;
     char outputfname[300];
@@ -51,12 +52,13 @@ char **argv;
     foobar = *argv;
     //sig = strtod(foobar, NULL);//atof(foobar);
     sig = (double)atoi(foobar);
-    printf("\n%s %.2lf\n",foobar,sig);
+
     // Get percentage
     argc--;
     argv++;
     foobar = *argv;
-    percentage = atof(foobar);
+    percentage = (double)atoi(foobar)/100; // TODO: fix this
+    printf("\n%s %.2lf %.2lf\n",foobar,sig,percentage);
     //ZEROTOL = atof(foobar);
 
     mr = (int)(sig * 3);
@@ -198,9 +200,30 @@ char **argv;
 
     fclose(fo2);
 
+    // Automatically determine HI and LO based off percentage
+    for (i=0; i<256; i++){
+        histogram[i] = 0;
+    }
+
+    for (i=0; i<256; i++){
+        for (j=0; j<256; j++){
+            histogram[(int)mag[i][j]]++;
+        }
+    }
+
+    cutOff = percentage*256*256;
+    areaOfTops = 0;
+    for(i = 255; i >= 0; i--)
+    {
+        areaOfTops+=histogram[i];
+        if (areaOfTops > cutOff) break;
+    }
+    HI = i;
+    LO = (int) (0.35 * HI);
+
     // Double threshold
-    HI = 200;
-    LO = 50;
+    //HI = 200;
+    //LO = 50;
 
     for (i=0; i<256; i++)
     {
