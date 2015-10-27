@@ -8,6 +8,7 @@ int    pic[PICSIZE][PICSIZE];
 double outpicx[PICSIZE][PICSIZE];
 double outpicy[PICSIZE][PICSIZE];
 double mag[PICSIZE][PICSIZE];
+int cand[PICSIZE][PICSIZE];
 int    edgeflag[PICSIZE][PICSIZE];
 double xmask[MAXMASK][MAXMASK];
 double ymask[MAXMASK][MAXMASK];
@@ -19,9 +20,10 @@ int argc;
 char **argv;
 {
     int     i,j,y,x,s,t,mr,centx,centy;
-    double  maskval,xsum,ysum,sig,maxival,minival,maxval,percentage;
+    double  maskval,xsum,ysum,sig,maxival,minival,maxval,percentage,slope;
     FILE    *fo1, *fo2,*fp1, *fopen();
     char    *foobar;
+    char outputfname[300];
 
     // Get input fname
     argc--;
@@ -33,7 +35,8 @@ char **argv;
     argc--;
     argv++;
     foobar = *argv;
-    fo1=fopen(foobar,"wb");
+    strcpy(outputfname, foobar);
+    //fo1=fopen(foobar,"wb");
 
     //argc--; argv++;
     //foobar = *argv;
@@ -119,8 +122,8 @@ char **argv;
     }
 
     // Output magnitude image
-    //strcpy(foobar, outputfname);
-    //fo1=fopen(foobar,"wb");//strcat(foobar,"mag.pgm"),"wb");
+    strcpy(foobar, outputfname);
+    fo1=fopen(strcat(foobar,"_mag.pgm"),"wb");
 
     fprintf(fo1,"P5\n256 256\n255\n"); // Output PGM Header
 
@@ -130,6 +133,63 @@ char **argv;
         {
             mag[i][j] = (mag[i][j] / maxival) * 255;
             fprintf(fo1,"%c",(char)((int)(mag[i][j])));
+        }
+    }
+
+    fclose(fo1);
+
+    // Peaks code
+    for(i=mr;i<256-mr;i++){
+        for(j=mr; j<256-mr; j++)
+        {
+
+            if((xconv[i][j]) == 0.0)
+            {
+                xconv[i][j] = .00001;
+            }
+            slope = yconv[i][j]/xconv[i][j];
+            if( (slope <= .4142)&&(slope > -.4142))
+            {
+                if((mag[i][j] > mag[i][j-1])&&(mag[i][j] > mag[i][j+1]))
+                {
+                    cand[i][j] = 255;
+                }
+            }
+            else if( (slope <= 2.4142)&&(slope > .4142))
+            {
+                if((mag[i][j] > mag[i-1][j-1])&&(mag[i][j] > mag[i+1][j+1]))
+                {
+                    cand[i][j] = 255;
+                }
+            }
+            else if( (slope <= -.4142)&&(slope > -2.4142))
+            {
+                if((mag[i][j] > mag[i+1][j-1])&&(mag[i][j] > mag[i-1][j+1]))
+                {
+                    cand[i][j] = 255;
+                }
+            }
+            else
+            {
+                if((mag[i][j] > mag[i-1][j])&&(mag[i][j] > mag[i+1][j]))
+                {
+                    cand[i][j] = 255;
+                }
+            }
+        }
+    }
+
+    // Output peaks image
+    strcpy(foobar, outputfname);
+    fo2=fopen(strcat(foobar,"_peaks.pgm"),"wb");
+
+    fprintf(fo1,"P5\n256 256\n255\n"); // Output PGM Header
+
+    for (i=0; i<256; i++)
+    {
+        for (j=0; j<256; j++)
+        {
+            fprintf(fo1,"%c",(char)((int)(cand[i][j])));
         }
     }
 
